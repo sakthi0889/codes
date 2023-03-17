@@ -37,18 +37,78 @@ public class ChangeDocumentClass {
             // Get document by ID
             Document doc = Factory.Document.fetchInstance(os, new Id(docId), null);
             
+                        // Change document class
+            doc.changeClass(NEW_DOC_CLASS_NAME);
+
             // Get properties of document
             PropertyFilter pf = new PropertyFilter();
-            pf.addIncludeProperty(new Integer(0), null, true, PropertyFilter.CURRENT_VERSION);
-            Properties props = doc.getProperties(pf);
-            
-            // Update document properties
+            pf.setMaxRecursion(1);
+            doc.fetchProperties(pf);
+            Properties props = doc.getProperties();
+
+            // Set property values
             props.putValue(propName1, propValue1);
             props.putValue(propName2, propValue2);
-            
-            // Change document class and save changes
-            doc.changeClass(NEW_DOC_CLASS_NAME);
+            props.putValue(newPropName1, newPropValue1); // set value of new property
+            props.putValue(newPropName2, newPropValue2); // set value of new property
+
+            // Save changes to document
             doc.save(RefreshMode.REFRESH, null, null);
+            
+            
+            
+            
+            // Read CSV file
+String csvFile = "file.csv";
+String csvDelimiter = ",";
+BufferedReader br = new BufferedReader(new FileReader(csvFile));
+String line = br.readLine(); // skip header row
+
+while ((line = br.readLine()) != null) {
+    String[] values = line.split(csvDelimiter);
+
+    // Get document ID and new document class name from CSV
+    String docId = values[0];
+    String newDocClassName = values[1];
+
+    // Create a map to hold the new property values
+    Map<String, String> newPropValues = new HashMap<>();
+
+    // Get the new property names and values from the CSV
+    for (int i = 2; i < values.length; i += 2) {
+        String propName = values[i];
+        String propValue = (i + 1 < values.length) ? values[i + 1] : null;
+        if (propValue != null) {
+            newPropValues.put(propName, propValue);
+        }
+    }
+
+    // Get document
+    Document doc = Factory.Document.fetchInstance(os, docId, null);
+
+    // Change document class
+    doc.changeClass(newDocClassName);
+
+    // Get properties of document
+    PropertyFilter pf = new PropertyFilter();
+    pf.setIncludeAllProperties(true);
+    doc.fetchProperties(pf);
+    Properties props = doc.getProperties();
+
+    // Set new property values
+    for (Map.Entry<String, String> entry : newPropValues.entrySet()) {
+        String propName = entry.getKey();
+        String propValue = entry.getValue();
+        props.putValue(propName, propValue);
+    }
+
+    // Save changes to document
+    doc.save(RefreshMode.REFRESH, null, null);
+}
+
+// Close BufferedReader
+br.close();
+
         }
         br.close();
     }
