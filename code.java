@@ -113,3 +113,71 @@ br.close();
         br.close();
     }
 }
+
+
+
+
+// Read CSV file
+String csvFile = "file.csv";
+String csvDelimiter = ",";
+String errorFile = "errors.csv";
+
+// Open error file writer
+PrintWriter errorWriter = new PrintWriter(new FileWriter(errorFile));
+
+// Write header to error file
+errorWriter.println("Document ID,Error");
+
+BufferedReader br = new BufferedReader(new FileReader(csvFile));
+String line = br.readLine(); // skip header row
+
+while ((line = br.readLine()) != null) {
+    String[] values = line.split(csvDelimiter);
+
+    // Get document ID and new document class name from CSV
+    String docId = values[0];
+    String newDocClassName = values[1];
+
+    // Create a map to hold the new property values
+    Map<String, String> newPropValues = new HashMap<>();
+
+    // Get the new property names and values from the CSV
+    for (int i = 2; i < values.length; i += 2) {
+        String propName = values[i];
+        String propValue = (i + 1 < values.length) ? values[i + 1] : null;
+        if (propValue != null) {
+            newPropValues.put(propName, propValue);
+        }
+    }
+
+    try {
+        // Get document
+        Document doc = Factory.Document.fetchInstance(os, docId, null);
+
+        // Change document class
+        doc.changeClass(newDocClassName);
+
+        // Get properties of document
+        PropertyFilter pf = new PropertyFilter();
+        pf.setIncludeAllProperties(true);
+        doc.fetchProperties(pf);
+        Properties props = doc.getProperties();
+
+        // Set new property values
+        for (Map.Entry<String, String> entry : newPropValues.entrySet()) {
+            String propName = entry.getKey();
+            String propValue = entry.getValue();
+            props.putValue(propName, propValue);
+        }
+
+        // Save changes to document
+        doc.save(RefreshMode.REFRESH, null, null);
+    } catch (Exception e) {
+        // Write error to error file
+        errorWriter.println(docId + "," + e.getMessage());
+    }
+}
+
+// Close BufferedReader and error file writer
+br.close();
+errorWriter.close();
