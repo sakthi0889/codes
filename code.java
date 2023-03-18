@@ -184,8 +184,6 @@ errorWriter.close();
 
 
 
-
-
 # Prompt the user to enter the source and destination folders
 $sourceFolder = Read-Host "Enter the source folder path"
 $destinationFolder = Read-Host "Enter the destination folder path"
@@ -193,16 +191,29 @@ $destinationFolder = Read-Host "Enter the destination folder path"
 $successLog = "C:\logs\success.log"
 $errorLog = "C:\logs\error.log"
 
-# Use Robocopy to copy shortcut link documents with /COPYALL to copy all file attributes, /R:2 to retry twice on failed copies, and /IS to include same files.
-$exitCode = robocopy $sourceFolder $destinationFolder /S /COPYALL /R:2 /IS /XF *.lnk
+# Use Robocopy to copy shortcut link documents with /COPYALL to copy all file attributes, /R:2 to retry twice on failed copies, /IS to include same files, and /XO to exclude older files in the destination folder.
+$exitCode = robocopy $sourceFolder $destinationFolder /S /COPYALL /R:2 /IS /XF *.lnk /XO
+
+# Replace the actual files with shortcuts in the destination folder
+Get-ChildItem -Path $destinationFolder -Recurse | Where-Object { !$_.PSIsContainer -and $_.Extension -ne ".lnk" } | ForEach-Object {
+    $shortcutFile = "$($_.FullName).lnk"
+    if (Test-Path $shortcutFile) {
+        Remove-Item $shortcutFile -Force
+    }
+    $WshShell = New-Object -ComObject WScript.Shell
+    $shortcut = $WshShell.CreateShortcut($shortcutFile)
+    $shortcut.TargetPath = $_.FullName
+    $shortcut.Save()
+}
 
 # Log success or error message depending on the exit code of Robocopy
 if ($exitCode -eq 0) {
     $message = "Robocopy completed successfully."
-    Write-Output "$message`r`n" -NoNewline
+    Write-Output "$message"
     Add-Content $successLog "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") : SUCCESS : $message : Source = $sourceFolder, Destination = $destinationFolder`r`n"
 } else {
     $message = "Robocopy failed with exit code $exitCode."
-    Write-Error "$message`r`n" -NoNewline
+    Write-Error "$message"
     Add-Content $errorLog "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") : ERROR : $message : Source = $sourceFolder, Destination = $destinationFolder`r`n"
 }
+
