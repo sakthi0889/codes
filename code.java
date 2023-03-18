@@ -183,37 +183,34 @@ br.close();
 errorWriter.close();
 
 
+# Set source and destination paths
+$sourcePath = "C:\Source"
+$destinationPath = "C:\Destination"
 
-# Prompt the user to enter the source and destination folders
-$sourceFolder = Read-Host "Enter the source folder path"
-$destinationFolder = Read-Host "Enter the destination folder path"
+# Set log file path
+$logFilePath = "C:\Logs\Robocopy.log"
 
-$successLog = "C:\logs\success.log"
-$errorLog = "C:\logs\error.log"
+# Get all files in source directory
+$files = Get-ChildItem -Path $sourcePath -Recurse | Where-Object { $_.PSIsContainer -eq $false }
 
-# Use Robocopy to copy shortcut link documents with /COPYALL to copy all file attributes, /R:2 to retry twice on failed copies, /IS to include same files, and /XO to exclude older files in the destination folder.
-$exitCode = robocopy $sourceFolder $destinationFolder /S /COPYALL /R:2 /IS /XF *.lnk /XO
+foreach ($file in $files) {
+    # Get file name and extension
+    $fileName = [System.IO.Path]::GetFileNameWithoutExtension($file.FullName)
+    $fileExt = [System.IO.Path]::GetExtension($file.FullName)
 
-# Replace the actual files with shortcuts in the destination folder
-Get-ChildItem -Path $destinationFolder -Recurse | Where-Object { !$_.PSIsContainer -and $_.Extension -ne ".lnk" } | ForEach-Object {
-    $shortcutFile = "$($_.FullName).lnk"
-    if (Test-Path $shortcutFile) {
-        Remove-Item $shortcutFile -Force
+    # Set destination file path with same name and different extension
+    $destFilePath = Join-Path $destinationPath ($fileName + ".*")
+
+    # Use Robocopy to copy and replace the file with the same name
+    $copyResult = robocopy $sourcePath $destinationPath $fileName$fileExt $destFilePath /COPY:DAT /IS /R:3 /W:5 /NP /NJH /NJS /LOG:$logFilePath
+
+    # Log success or failure of the copy operation
+    if ($copyResult -match "100%") {
+        Write-Host "Successfully copied $($file.FullName)"
+        Add-Content $logFilePath "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") Successfully copied $($file.FullName)"
     }
-    $WshShell = New-Object -ComObject WScript.Shell
-    $shortcut = $WshShell.CreateShortcut($shortcutFile)
-    $shortcut.TargetPath = $_.FullName
-    $shortcut.Save()
+    else {
+        Write-Host "Failed to copy $($file.FullName)"
+        Add-Content $logFilePath "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") Failed to copy $($file.FullName)"
+    }
 }
-
-# Log success or error message depending on the exit code of Robocopy
-if ($exitCode -eq 0) {
-    $message = "Robocopy completed successfully."
-    Write-Output "$message"
-    Add-Content $successLog "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") : SUCCESS : $message : Source = $sourceFolder, Destination = $destinationFolder`r`n"
-} else {
-    $message = "Robocopy failed with exit code $exitCode."
-    Write-Error "$message"
-    Add-Content $errorLog "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") : ERROR : $message : Source = $sourceFolder, Destination = $destinationFolder`r`n"
-}
-
