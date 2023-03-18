@@ -181,3 +181,27 @@ while ((line = br.readLine()) != null) {
 // Close BufferedReader and error file writer
 br.close();
 errorWriter.close();
+
+
+
+
+
+
+# Prompt the user to enter the source and destination folders
+$sourceFolder = Read-Host "Enter the source folder path"
+$destinationFolder = Read-Host "Enter the destination folder path"
+
+$successLog = "C:\logs\success.log"
+$errorLog = "C:\logs\error.log"
+
+# Use Robocopy to copy shortcut link documents with /MOVE to replace the destination file if it already exists
+$exitCode = robocopy $sourceFolder $destinationFolder /S /MOVE /XF *.lnk
+
+# Log success or error message depending on the exit code of Robocopy
+if ($exitCode -eq 0) {
+    Write-Output "Robocopy completed successfully."
+    Add-Content $successLog "$(Get-Date) - Robocopy completed successfully. Source: $sourceFolder, Destination: $destinationFolder"
+} else {
+    Write-Error "Robocopy failed with exit code $exitCode."
+    Add-Content $errorLog "$(Get-Date) - Robocopy failed with exit code $exitCode. Source: $sourceFolder, Destination: $destinationFolder"
+}
