@@ -214,3 +214,19 @@ foreach ($file in $files) {
         Add-Content $logFilePath "$(Get-Date -Format "yyyy-MM-dd HH:mm:ss") Failed to copy $($file.FullName)"
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+$source = "C:\Source\example.pdf.url"
+$destination = "C:\Destination\example.pdf"
+
+robocopy $source $destination /IS /IT /R:1 /W:1 /LOG+:C:\Logs\robocopy.log /NFL /NDL /NJH /NJS
+
