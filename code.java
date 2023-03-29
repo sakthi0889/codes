@@ -231,14 +231,14 @@ $destination = "C:\Destination\example.pdf"
 robocopy $source $destination /IS /IT /R:1 /W:1 /LOG+:C:\Logs\robocopy.log /NFL /NDL /NJH /NJS
 
 
-# Define the root logger with file appender
-log4j.rootLogger = INFO, file
+log4j.rootLogger=INFO, FILE
 
-# Define the file appender
-log4j.appender.file=org.apache.log4j.RollingFileAppender
-log4j.appender.file.File=/path/to/logs/mylog.log
-log4j.appender.file.MaxFileSize=5MB
-log4j.appender.file.MaxBackupIndex=10
-log4j.appender.file.layout=org.apache.log4j.PatternLayout
-log4j.appender.file.layout.ConversionPattern=%d{ISO8601} [%t] %-5p %c{1} - %m%n
+log4j.appender.FILE=org.apache.log4j.RollingFileAppender
+log4j.appender.FILE.File=/path/to/logs/myapp.log
+log4j.appender.FILE.MaxFileSize=10MB
+log4j.appender.FILE.MaxBackupIndex=5
+log4j.appender.FILE.layout=org.apache.log4j.PatternLayout
+log4j.appender.FILE.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %m%n
+log4j.appender.FILE.RollingPolicy=org.apache.log4j.rolling.TimeBasedRollingPolicy
+log4j.appender.FILE.RollingPolicy.FileNamePattern=/path/to/logs/myapp-%d{yyyy-MM-dd}.log.gz
 
