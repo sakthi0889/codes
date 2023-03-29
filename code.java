@@ -231,23 +231,14 @@ $destination = "C:\Destination\example.pdf"
 robocopy $source $destination /IS /IT /R:1 /W:1 /LOG+:C:\Logs\robocopy.log /NFL /NDL /NJH /NJS
 
 
-# Logs to file and console
-handlers= java.util.logging.FileHandler, java.util.logging.ConsoleHandler
-# Global logging levels, 7 levels
-.level= SEVERE
+# Define the root logger with file appender
+log4j.rootLogger = INFO, file
 
-# Log file output in user's home directory, %h
-java.util.logging.FileHandler.pattern = %h/java%u.log
-java.util.logging.FileHandler.limit = 50000
-java.util.logging.FileHandler.count = 1
-java.util.logging.FileHandler.formatter = java.util.logging.XMLFormatter
-# java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
-
-java.util.logging.ConsoleHandler.level = INFO
-java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
-
-java.util.logging.SimpleFormatter.format=[%1$tc] %4$s: %5$s %n
-
-# log level for package
-com.mkyong.level = SEVERE
+# Define the file appender
+log4j.appender.file=org.apache.log4j.RollingFileAppender
+log4j.appender.file.File=/path/to/logs/mylog.log
+log4j.appender.file.MaxFileSize=5MB
+log4j.appender.file.MaxBackupIndex=10
+log4j.appender.file.layout=org.apache.log4j.PatternLayout
+log4j.appender.file.layout.ConversionPattern=%d{ISO8601} [%t] %-5p %c{1} - %m%n
 
