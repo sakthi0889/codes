@@ -230,3 +230,24 @@ $destination = "C:\Destination\example.pdf"
 
 robocopy $source $destination /IS /IT /R:1 /W:1 /LOG+:C:\Logs\robocopy.log /NFL /NDL /NJH /NJS
 
+
+# Logs to file and console
+handlers= java.util.logging.FileHandler, java.util.logging.ConsoleHandler
+# Global logging levels, 7 levels
+.level= SEVERE
+
+# Log file output in user's home directory, %h
+java.util.logging.FileHandler.pattern = %h/java%u.log
+java.util.logging.FileHandler.limit = 50000
+java.util.logging.FileHandler.count = 1
+java.util.logging.FileHandler.formatter = java.util.logging.XMLFormatter
+# java.util.logging.FileHandler.formatter = java.util.logging.SimpleFormatter
+
+java.util.logging.ConsoleHandler.level = INFO
+java.util.logging.ConsoleHandler.formatter = java.util.logging.SimpleFormatter
+
+java.util.logging.SimpleFormatter.format=[%1$tc] %4$s: %5$s %n
+
+# log level for package
+com.mkyong.level = SEVERE
+
